@@ -14,8 +14,53 @@
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background: #f8fafc;
+            background: radial-gradient(circle at top left, #4c1d95 0, #020617 45%, #020617 100%);
             min-height: 100vh;
+            color: #e5e7eb;
+        }
+
+        /* Тёмно-фиолетовая тема поверх tailwind */
+        .bg-gray-50 {
+            background-color: #020617 !important;
+        }
+        .bg-white {
+            background-color: #020617 !important;
+        }
+        .bg-gray-100 {
+            background-color: #020617 !important;
+        }
+        .bg-gray-200 {
+            background-color: #0f172a !important;
+        }
+        .text-gray-800 {
+            color: #e5e7eb !important;
+        }
+        .text-gray-700 {
+            color: #cbd5f5 !important;
+        }
+        .text-gray-600 {
+            color: #9ca3af !important;
+        }
+        .text-gray-500 {
+            color: #6b7280 !important;
+        }
+        .border-gray-200 {
+            border-color: #1e293b !important;
+        }
+        .border-gray-300 {
+            border-color: #334155 !important;
+        }
+        .shadow-sm, .shadow-lg {
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9) !important;
+        }
+        .bg-blue-50 {
+            background-color: rgba(59, 130, 246, 0.06) !important;
+        }
+        .border-blue-500 {
+            border-color: #6366f1 !important;
+        }
+        a.underline {
+            color: #a855f7;
         }
         
         .chat-message {
@@ -34,26 +79,30 @@
         }
         
         .tutor-response {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
+            background: #020617;
+            border: 1px solid #312e81;
             border-radius: 12px;
             padding: 16px;
             margin: 8px 0;
             line-height: 1.6;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 12px 35px rgba(15,23,42,0.65);
+            max-width: 80%;
         }
         
         .user-question {
-            background: #f1f5f9;
+            background: linear-gradient(135deg, #4f46e5, #a855f7);
             border-radius: 12px;
             padding: 16px;
             margin: 8px 0;
-            border: 1px solid #e2e8f0;
+            border: none;
+            color: #f9fafb;
+            max-width: 80%;
+            margin-left: auto;
         }
         
         .tutor-response pre {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: #020617;
+            border: 1px solid #1e293b;
             border-radius: 8px;
             padding: 12px;
             overflow-x: auto;
@@ -61,8 +110,8 @@
         }
         
         .tutor-response code {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: #020617;
+            border: 1px solid #1e293b;
             border-radius: 4px;
             padding: 2px 6px;
             font-size: 0.9em;
@@ -83,34 +132,22 @@
         }
         
         .schedule-card {
-            background: #ffffff;
+            background: linear-gradient(135deg, rgba(76,29,149,0.9), rgba(15,23,42,0.95));
             border-radius: 12px;
             padding: 16px;
             margin: 8px 0;
             transition: all 0.2s ease;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid rgba(129, 140, 248, 0.5);
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
         }
         
         .schedule-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 22px 55px rgba(30, 64, 175, 0.8);
         }
         
         .btn-primary {
-            background: #4f46e5;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: 500;
-            font-size: 0.875rem;
-        }
-        
-        .btn-primary {
-            background: #4f46e5;
+            background: linear-gradient(135deg, #4f46e5, #a855f7);
             color: white;
             padding: 10px 20px;
             border-radius: 8px;
@@ -121,8 +158,9 @@
         }
         
         .btn-primary:hover {
-            background: #4338ca;
+            background: linear-gradient(135deg, #4338ca, #7c3aed);
             transform: translateY(-1px);
+            box-shadow: 0 12px 30px rgba(88, 28, 135, 0.7);
         }
         
         .btn-primary:active {
@@ -162,9 +200,16 @@
                         <p class="text-xs text-gray-600">Персональный школьный навигатор</p>
                     </div>
                 </div>
-                <div id="userInfo" class="text-right">
-                    <p id="userName" class="text-gray-800 font-medium">Гость</p>
-                    <p id="userClass" class="text-xs text-gray-600">Не авторизован</p>
+                <div id="userInfo" class="flex items-center space-x-3 text-right">
+                    <div id="userProfile" class="flex items-center space-x-2">
+                        <div id="avatarContainer" class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 border-2 border-indigo-100">
+                            <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=random" alt="Avatar" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <p id="userName" class="text-gray-800 font-medium">Гость</p>
+                            <p id="userClass" class="text-xs text-gray-600">Не авторизован</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -227,84 +272,167 @@
             </div>
 
             <!-- Main App (hidden until auth) -->
-            <div id="mainApp" class="hidden space-y-8">
-                <!-- Schedule Widget -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold text-gray-800">📅 Расписание</h2>
-                        <button
-                            onclick="loadSchedule()"
-                            class="btn-primary text-sm py-1 px-3"
-                        >
-                            🔄 Обновить
-                        </button>
+            <div id="mainApp" class="hidden max-w-md mx-auto space-y-4 relative">
+                <!-- Экран "Сегодня" -->
+                <div id="todayView" class="space-y-4">
+                    <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-500 rounded-3xl p-4 text-white shadow-lg mt-1">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p id="todayDate" class="text-xs uppercase tracking-wide opacity-80">Сегодня</p>
+                                <p id="todayTitle" class="text-xl font-semibold mt-1">Понедельник, 15 мая</p>
+                            </div>
+                            <div class="text-right">
+                                <p id="todaySummary" class="text-sm opacity-90">Осталось уроков: 0</p>
+                                <p class="text-[10px] opacity-80 mt-1" id="lastUpdated">Обновлено только что</p>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div id="scheduleContainer" class="space-y-3">
-                        <p class="text-gray-500 text-center py-4">Загрузка расписания...</p>
+
+                    <div class="bg-white/5 backdrop-blur rounded-3xl p-4 shadow-sm border border-white/10">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-base font-semibold text-gray-100">Расписание на сегодня</h2>
+                            <button
+                                onclick="loadSchedule()"
+                                class="btn-primary text-xs py-1 px-3"
+                            >
+                                🔄 Обновить
+                            </button>
+                        </div>
+                        <div id="scheduleContainer" class="space-y-3">
+                            <p class="text-gray-500 text-center py-4">Загрузка расписания...</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Chat Widget -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4">💬 AI-Наставник</h2>
-                    
-                    <!-- Chat History -->
-                    <div
-                        id="chatHistory"
-                        class="bg-gray-50 rounded-lg p-4 mb-4 h-80 overflow-y-auto border border-gray-200"
-                    >
-                        <p class="text-gray-500 text-center py-10">
-                            Привет! 👋 Я твой ИИ-наставник. Задавай вопросы по школьным предметам,
-                            и я помогу тебе разобраться в материале!
-                        </p>
+                <!-- Экран "Задания" -->
+                <div id="tasksView" class="hidden space-y-3">
+                    <div class="bg-white/5 backdrop-blur rounded-3xl p-4 shadow-sm border border-white/10">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-base font-semibold text-gray-100">Задания и ДЗ</h2>
+                            <span class="text-xs text-gray-400" id="tasksCountLabel">Нет активных заданий</span>
+                        </div>
+                        <div id="tasksContainer" class="space-y-3">
+                            <p class="text-gray-500 text-center py-4 text-sm">
+                                Заданий пока нет. Как только в расписании появится ДЗ, они отобразятся здесь.
+                            </p>
+                        </div>
                     </div>
-                    
-                    <!-- Subject Selector -->
-                    <div class="mb-3 flex items-center space-x-2">
-                        <label for="subjectSelect" class="font-medium text-gray-700">Предмет:</label>
-                        <select id="subjectSelect" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                            <option value="">Не выбран</option>
-                            <option value="Физика">Физика</option>
-                            <option value="Химия">Химия</option>
-                            <option value="Математика">Математика</option>
-                            <option value="Русский язык">Русский язык</option>
-                            <option value="История">История</option>
-                            <option value="Биология">Биология</option>
-                            <option value="Английский язык">Английский язык</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Input Area -->
-                    <div class="flex space-x-2">
-                        <textarea
-                            id="questionInput"
-                            class="flex-grow border border-gray-300 rounded-lg p-3 text-sm resize-none"
-                            rows="2"
-                            placeholder="Напишите свой вопрос..."
-                            onkeypress="handleKeyPress(event)"
-                        ></textarea>
-                        <button
-                            onclick="askTutor()"
-                            class="btn-primary self-end px-4 font-medium"
+                </div>
+
+                <!-- Экран "Чат с ИИ" -->
+                <div id="chatView" class="hidden space-y-3">
+                    <div class="bg-white/5 backdrop-blur rounded-3xl p-4 shadow-sm border border-white/10">
+                        <div class="flex justify-between items-center mb-3">
+                            <div>
+                                <p class="text-[11px] uppercase tracking-wide text-purple-300">Помощник ИИ</p>
+                                <h2 class="text-lg font-semibold text-gray-100">Разбор с ИИ</h2>
+                            </div>
+                        </div>
+
+                        <!-- Быстрые действия -->
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <button class="px-3 py-1.5 rounded-full bg-purple-900/60 text-xs text-purple-100 border border-purple-500/40" onclick="quickPrompt('Объясни проще')">
+                                Объясни проще
+                            </button>
+                            <button class="px-3 py-1.5 rounded-full bg-purple-900/60 text-xs text-purple-100 border border-purple-500/40" onclick="quickPrompt('Дай пример')">
+                                Дай пример
+                            </button>
+                            <button class="px-3 py-1.5 rounded-full bg-purple-900/60 text-xs text-purple-100 border border-purple-500/40" onclick="quickPrompt('Тест по теме')">
+                                Тест по теме
+                            </button>
+                            <button class="px-3 py-1.5 rounded-full bg-purple-900/60 text-xs text-purple-100 border border-purple-500/40" onclick="quickPrompt('Решение задачи')">
+                                Решение задачи
+                            </button>
+                        </div>
+
+                        <!-- Чат -->
+                        <div
+                            id="chatHistory"
+                            class="bg-black/20 rounded-3xl p-4 mb-3 h-80 overflow-y-auto border border-white/5"
                         >
-                            📤
-                        </button>
+                            <div class="tutor-response chat-message">
+                                <strong>🤖 Наставник ИИ</strong>
+                                <p class="mt-1 text-sm text-gray-200">
+                                    Привет! Я помогу разобраться с любым заданием. Выбери быстрый режим выше или просто задай вопрос.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Предмет + ввод -->
+                        <div class="mb-2 flex items-center gap-2">
+                            <label for="subjectSelect" class="font-medium text-xs text-gray-300">Предмет</label>
+                            <select id="subjectSelect" class="flex-1 bg-black/30 border border-white/10 rounded-2xl px-3 py-1.5 text-xs text-gray-100">
+                                <option value="">Не выбран</option>
+                                <option value="Математика">Математика</option>
+                                <option value="Алгебра">Алгебра</option>
+                                <option value="Геометрия">Геометрия</option>
+                                <option value="Физика">Физика</option>
+                                <option value="Химия">Химия</option>
+                                <option value="Биология">Биология</option>
+                                <option value="Русский язык">Русский язык</option>
+                                <option value="История">История</option>
+                                <option value="Английский язык">Английский язык</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-end gap-2">
+                            <textarea
+                                id="questionInput"
+                                class="flex-grow bg-black/30 border border-white/10 rounded-2xl p-3 text-sm text-gray-100 resize-none"
+                                rows="2"
+                                placeholder="Напиши вопрос или вставь условие задачи..."
+                                onkeypress="handleKeyPress(event)"
+                            ></textarea>
+                            <button
+                                onclick="askTutor()"
+                                class="btn-primary self-stretch flex items-center justify-center px-4"
+                            >
+                                Отправить
+                            </button>
+                        </div>
                     </div>
-                    
-                    <!-- Control Buttons -->
-                    <div class="mt-3 flex justify-between">
-                        <button
-                            onclick="clearChat()"
-                            class="text-gray-600 hover:text-gray-800 text-sm"
-                        >
-                            🗑️ Очистить чат
-                        </button>
+                </div>
+
+                <!-- Экран "Профиль" -->
+                <div id="profileView" class="hidden space-y-3">
+                    <div class="bg-white/5 backdrop-blur rounded-3xl p-5 shadow-sm border border-white/10">
+                        <h2 class="text-base font-semibold text-gray-100 mb-3">Профиль ученика</h2>
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-400/70">
+                                <img id="profileAvatar" src="https://ui-avatars.com/api/?name=User&background=random" class="w-full h-full object-cover" alt="Avatar">
+                            </div>
+                            <div>
+                                <p id="profileName" class="font-semibold text-gray-100 text-sm">Ученик</p>
+                                <p id="profileClass" class="text-xs text-gray-400">Класс не указан</p>
+                            </div>
+                        </div>
                         <button
                             onclick="logout()"
-                            class="text-red-600 hover:text-red-800 text-sm"
+                            class="w-full text-xs text-red-300 hover:text-red-200 mt-2 py-2 rounded-2xl border border-red-500/40"
                         >
-                            🚪 Выход
+                            🚪 Выйти из аккаунта
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Нижняя навигация -->
+                <div class="fixed inset-x-0 bottom-3 flex justify-center pointer-events-none">
+                    <div class="pointer-events-auto bg-black/40 backdrop-blur-xl rounded-3xl px-4 py-2 flex gap-4 text-[11px] text-gray-300 border border-white/10 shadow-2xl">
+                        <button id="tabBtnToday" onclick="switchTab('today')" class="flex flex-col items-center gap-0.5 text-purple-300">
+                            <span>📅</span>
+                            <span>Уроки</span>
+                        </button>
+                        <button id="tabBtnTasks" onclick="switchTab('tasks')" class="flex flex-col items-center gap-0.5">
+                            <span>📘</span>
+                            <span>Задания</span>
+                        </button>
+                        <button id="tabBtnChat" onclick="switchTab('chat')" class="flex flex-col items-center gap-0.5">
+                            <span>✨</span>
+                            <span>ИИ</span>
+                        </button>
+                        <button id="tabBtnProfile" onclick="switchTab('profile')" class="flex flex-col items-center gap-0.5">
+                            <span>👤</span>
+                            <span>Профиль</span>
                         </button>
                     </div>
                 </div>
@@ -347,46 +475,150 @@
             }
         }
 
+        function switchTab(tab) {
+            const views = {
+                'today': document.getElementById('todayView'),
+                'tasks': document.getElementById('tasksView'),
+                'chat': document.getElementById('chatView'),
+                'profile': document.getElementById('profileView'),
+            };
+            const buttons = {
+                'today': document.getElementById('tabBtnToday'),
+                'tasks': document.getElementById('tabBtnTasks'),
+                'chat': document.getElementById('tabBtnChat'),
+                'profile': document.getElementById('tabBtnProfile'),
+            };
+
+            Object.values(views).forEach(v => v.classList.add('hidden'));
+            Object.values(buttons).forEach(b => b.classList.remove('text-purple-300'));
+
+            if (views[tab]) {
+                views[tab].classList.remove('hidden');
+            }
+            if (buttons[tab]) {
+                buttons[tab].classList.add('text-purple-300');
+            }
+        }
+
         async function loadSchedule() {
             try {
                 const result = await eel.get_today_schedule()();
                 
                 const container = document.getElementById('scheduleContainer');
+                const tasksContainer = document.getElementById('tasksContainer');
+                const tasksCountLabel = document.getElementById('tasksCountLabel');
+                const todaySummary = document.getElementById('todaySummary');
+                const lastUpdated = document.getElementById('lastUpdated');
+
                 container.innerHTML = '';
-                
-                if (result.success && result.schedule.length > 0) {
-                    result.schedule.forEach(lesson => {
+                tasksContainer.innerHTML = '';
+
+                const lessons = (result.success && result.schedule.length > 0) ? result.schedule : [];
+
+                const now = new Date();
+                lastUpdated.textContent = `Обновлено ${now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
+
+                if (lessons.length > 0) {
+                    todaySummary.textContent = `Уроков сегодня: ${lessons.length}`;
+
+                    let tasksCount = 0;
+
+                    lessons.forEach((lesson, index) => {
+                        const hasHomework = !!lesson.homework;
+                        if (hasHomework) tasksCount += 1;
+
                         const card = document.createElement('div');
                         card.className = 'schedule-card';
+                        const homeworkBadge = hasHomework
+                            ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500/90 text-[10px] font-medium text-black">ДЗ</span>'
+                            : '';
+
+                        const homeworkText = hasHomework
+                            ? `<div class="mt-2 p-2 bg-black/30 rounded-2xl text-xs border border-amber-400/40 text-amber-50">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-semibold text-[11px]">Текст задания</span>
+                                        <button class="text-[10px] underline text-purple-200" onclick="openHomeworkFromLesson(event, '${lesson.subject}', \`${lesson.homework.replace(/`/g, '\\`')}\`)">Открыть полностью</button>
+                                    </div>
+                                    <div class="line-clamp-2">${lesson.homework}</div>
+                               </div>`
+                            : '';
+
+                        const breakLabel = index < lessons.length - 1
+                            ? `<div class="mt-2 text-[10px] text-gray-400">Перемена • ~10 минут</div>`
+                            : '';
+
                         card.innerHTML = `
                             <div class="flex justify-between items-start">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2 mb-1">
-                                        <span class="font-bold text-gray-800">${lesson.number}</span>
-                                        <span class="text-gray-600">•</span>
-                                        <span class="font-medium text-gray-800">${lesson.subject}</span>
+                                        <span class="text-xs text-gray-300">Урок ${lesson.number}</span>
+                                        ${homeworkBadge}
                                     </div>
-                                    <div class="flex items-center space-x-2 text-sm text-gray-600 mb-2">
-                                        <span>⏰ ${lesson.start_time} - ${lesson.end_time}</span>
+                                    <div class="text-sm font-semibold text-gray-100 mb-1">${lesson.subject}</div>
+                                    <div class="flex items-center space-x-2 text-[11px] text-gray-400 mb-1">
+                                        <span>⏰ ${lesson.start_time}–${lesson.end_time}</span>
+                                        ${lesson.room ? `<span>• Каб. ${lesson.room}</span>` : ''}
                                     </div>
-                                    ${lesson.room ? `<div class="text-sm text-gray-600"><span>📍 Кабинет: </span><span class="font-medium">${lesson.room}</span></div>` : ''}
+                                    ${homeworkText}
+                                    ${breakLabel}
                                 </div>
                                 <button
-                                    onclick="askAboutLesson('${lesson.subject}')"
-                                    class="btn-primary text-xs py-1 px-3 ml-2"
+                                    onclick="askAboutLesson('${lesson.subject}', '${(lesson.homework || '').replace(/'/g, "\\'")}')"
+                                    class="btn-primary text-[11px] py-1 px-2 ml-2"
                                 >
-                                    💡 Помощь
+                                    Разбор с ИИ
                                 </button>
                             </div>
                         `;
                         container.appendChild(card);
+
+                        if (hasHomework) {
+                            const taskCard = document.createElement('div');
+                            taskCard.className = 'schedule-card';
+                            taskCard.innerHTML = `
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <div class="text-xs text-gray-400 mb-1">${lesson.subject}</div>
+                                        <div class="text-sm font-semibold text-gray-100 mb-1">Домашнее задание</div>
+                                        <div class="text-xs text-gray-300 line-clamp-3">${lesson.homework}</div>
+                                    </div>
+                                    <button
+                                        onclick="openHomeworkFromLesson(event, '${lesson.subject}', \`${lesson.homework.replace(/`/g, '\\`')}\`)"
+                                        class="btn-primary text-[11px] py-1 px-2 ml-2"
+                                    >
+                                        Открыть
+                                    </button>
+                                </div>
+                            `;
+                            tasksContainer.appendChild(taskCard);
+                        }
                     });
+
+                    tasksCountLabel.textContent = tasksCount > 0
+                        ? `Активных заданий: ${tasksCount}`
+                        : 'Нет активных заданий';
                 } else {
+                    todaySummary.textContent = 'Сегодня уроков нет';
                     container.innerHTML = '<p class="text-gray-500 text-center py-4">📭 Нет уроков на сегодня</p>';
+                    tasksContainer.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Новых заданий нет.</p>';
+                    tasksCountLabel.textContent = 'Нет активных заданий';
                 }
             } catch (error) {
                 console.error('Schedule error:', error);
             }
+        }
+
+        function quickPrompt(mode) {
+            const input = document.getElementById('questionInput');
+            const prefixMap = {
+                'Объясни проще': 'Объясни эту тему попроще: ',
+                'Дай пример': 'Приведи похожий пример и решение: ',
+                'Тест по теме': 'Сделай мини-тест по теме: ',
+                'Решение задачи': 'Разбери пошагово решение этой задачи: ',
+            };
+            const current = input.value.trim();
+            input.value = (prefixMap[mode] || '') + current;
+            input.focus();
         }
 
         async function askTutor() {
@@ -445,8 +677,25 @@
             }
         }
 
-        function askAboutLesson(subject) {
+        function askAboutLesson(subject, homework) {
             document.getElementById('subjectSelect').value = subject;
+            if (homework && homework !== 'None') {
+                document.getElementById('questionInput').value = `Помоги мне с домашним заданием по предмету "${subject}": ${homework}. С чего мне начать?`;
+            } else {
+                document.getElementById('questionInput').value = `У меня сейчас урок по предмету "${subject}". Какую тему мы обычно сейчас проходим и что в ней самое важное?`;
+            }
+            document.getElementById('questionInput').focus();
+            
+            switchTab('chat');
+            document.getElementById('chatHistory').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function openHomeworkFromLesson(event, subject, homework) {
+            event.stopPropagation();
+            switchTab('chat');
+            document.getElementById('subjectSelect').value = subject;
+            document.getElementById('questionInput').value =
+                `Помоги мне разобраться с заданием по предмету "${subject}". Вот текст:\n\n${homework}\n\nОбъясни, что нужно сделать, и начни с первого шага.`;
             document.getElementById('questionInput').focus();
         }
 
@@ -467,6 +716,9 @@
                 document.getElementById('mainApp').classList.add('hidden');
                 document.getElementById('tokenInput').value = '';
                 document.getElementById('chatHistory').innerHTML = '';
+                document.getElementById('userName').textContent = 'Гость';
+                document.getElementById('userClass').textContent = 'Не авторизован';
+                document.getElementById('userAvatar').src = 'https://ui-avatars.com/api/?name=User&background=random';
             }
         }
 
@@ -509,9 +761,28 @@
             document.getElementById('mainApp').classList.remove('hidden');
             
             if (profile) {
-                document.getElementById('userName').textContent = profile.name || 'Ученик';
-                document.getElementById('userClass').textContent = profile.class || 'Класс неизвестен';
+                const name = profile.name || 'Ученик';
+                const klass = profile.class || 'Класс неизвестен';
+
+                document.getElementById('userName').textContent = name;
+                document.getElementById('userClass').textContent = klass;
+
+                // Обновляем аватары в шапке и профиле
+                const avatarUrl = profile.avatar
+                    ? profile.avatar
+                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'У')}&background=random`;
+
+                document.getElementById('userAvatar').src = avatarUrl;
+                const profileAvatar = document.getElementById('profileAvatar');
+                if (profileAvatar) profileAvatar.src = avatarUrl;
+
+                const profileName = document.getElementById('profileName');
+                const profileClass = document.getElementById('profileClass');
+                if (profileName) profileName.textContent = name;
+                if (profileClass) profileClass.textContent = klass;
             }
+
+            switchTab('today');
         }
 
         function handleKeyPress(event) {

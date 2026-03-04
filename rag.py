@@ -59,14 +59,14 @@ class RAGSystem:
         try:
             pdf_path = Path(pdf_path)
             if not pdf_path.exists():
-                print(f"❌ Файл не найден: {pdf_path}")
+                print(f"Файл не найден: {pdf_path}")
                 return False
             
             if not pdf_path.suffix.lower() == '.pdf':
-                print(f"❌ Это не PDF файл: {pdf_path}")
+                print(f"Это не PDF файл: {pdf_path}")
                 return False
             
-            print(f"📚 Обработка учебника: {pdf_path.name}")
+            print(f"Обработка учебника: {pdf_path.name}")
             
             # Извлекаем текст из PDF с помощью pymupdf4llm
             # Это быстрый способ получить чистый Markdown из PDF
@@ -125,11 +125,11 @@ class RAGSystem:
             }
             self._save_textbook_metadata()
             
-            print(f"✅ Учебник добавлен! ({len(chunks)} чанков)")
+            print(f"Учебник добавлен ({len(chunks)} чанков)")
             return True
         
         except Exception as e:
-            print(f"❌ Ошибка при добавлении учебника: {e}")
+            print(f"Ошибка при добавлении учебника: {e}")
             return False
     
     def search(self, query: str, subject: Optional[str] = None, 

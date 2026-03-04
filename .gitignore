@@ -1,0 +1,59 @@
+# .gitignore для AI-Tutor
+
+# Окружение
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Проектные папки
+data/
+__pycache__/
+*.log
+temp/
+
+# Ollama и модели
+AppData/Local/Programs/Ollama/
+
+# ChromaDB vectors
+.chroma/
+
+# User uploads
+textbooks/*.pdf
+textbooks/*.PDF
+
+# Windows
+Thumbs.db

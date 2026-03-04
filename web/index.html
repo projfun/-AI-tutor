@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Tutor: Персональный школьный навигатор</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="eel.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .chat-message {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .tutor-response {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        
+        .user-question {
+            background: #f3f4f6;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .schedule-card {
+            background: white;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 8px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .schedule-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen bg-gradient-to-br from-purple-600 to-purple-800">
+        <!-- Navigation Bar -->
+        <nav class="bg-white bg-opacity-90 shadow-lg">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="text-3xl">🎓</div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">AI-Tutor</h1>
+                        <p class="text-sm text-gray-600">Персональный школьный навигатор</p>
+                    </div>
+                </div>
+                <div id="userInfo" class="text-right">
+                    <p id="userName" class="text-gray-800 font-semibold">Гость</p>
+                    <p id="userClass" class="text-sm text-gray-600">Не авторизован</p>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Container -->
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            <!-- Auth Widget -->
+            <div id="authWidget" class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">🔐 Авторизация</h2>
+                <div class="space-y-4">
+                    <p class="text-gray-700">
+                        Прежде всего, вам нужно подключить ваш аккаунт школьного портала через cookies.
+                    </p>
+                    
+                    <button onclick="showTokenHelp()" class="btn-primary w-full mb-4">❓ Как получить cookies</button>
+                    <div id="tokenHelp" class="hidden bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+                        <h3 class="text-lg font-bold text-blue-900 mb-2">Пошаговая инструкция:</h3>
+                        <ol class="list-decimal list-inside text-blue-800 space-y-2 mb-2">
+                            <li><b>Откройте</b> <a href="https://authedu.mosreg.ru" target="_blank" class="underline font-bold">школьный портал "Моя Школа"</a> и войдите в свой аккаунт.</li>
+                            <li><b>Нажмите F12</b> (или Ctrl+Shift+I) — откроется панель разработчика (DevTools).</li>
+                            <li><b>Перейдите на вкладку "Application"</b> (в Chrome/Edge) или "Storage" (в Firefox).</li>
+                            <li>В левой панели найдите <b>"Cookies"</b> → <b>"https://authedu.mosreg.ru"</b>.</li>
+                            <li><b>Найдите и скопируйте эти cookies:</b>
+                                <ul class="list-disc list-inside ml-4 mt-1">
+                                    <li><span style="color:red; font-weight:bold;">aupd_token</span> — основной токен</li>
+                                    <li><span style="color:red; font-weight:bold;">active_student</span> — ID студента</li>
+                                    <li><span style="color:red; font-weight:bold;">aupd_current_role</span> — роль</li>
+                                    <li>Остальные cookies (опционально, но полезно)</li>
+                                </ul>
+                            </li>
+                            <li><b>Как скопировать:</b> Кликните по каждому cookie, скопируйте его значение и объедините в одну строку.</li>
+                            <li>Вернитесь в это приложение и вставьте cookies ниже в формате: <code>name1=value1; name2=value2; name3=value3</code></li>
+                            <li>Нажмите кнопку <b>"✅ Подтвердить cookies"</b>.</li>
+                        </ol>
+                        <div class="bg-white border rounded p-3 text-xs text-gray-700 mb-2 font-mono">
+                            <b>Пример cookies:</b><br>
+                            <span style="color:green">aupd_token=eyJhbGciOiJIUzI1NiIs...; active_student=1226456; aupd_current_role=21</span>
+                        </div>
+                        <p class="text-sm text-blue-700 mb-2">⚠️ <b>Важно:</b> Копируйте только cookies 🍪 из списка слева в DevTools, где написано "authedu.mosreg.ru"!</p>
+                        <button onclick="hideTokenHelp()" class="btn-primary w-full mt-2">Скрыть инструкцию</button>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Cookies (из DevTools):</label>
+                        <textarea 
+                            id="tokenInput" 
+                            class="w-full border-2 border-gray-300 rounded-lg p-3 font-mono text-sm"
+                            rows="5"
+                            placeholder="Вставьте ваши cookies здесь. Пример: cookie1=value1; cookie2=value2"
+                        ></textarea>
+                    </div>
+                    
+                    <button 
+                        onclick="authorizePortal()"
+                        class="btn-primary w-full text-lg font-semibold py-3"
+                    >
+                        ✅ Подтвердить cookies
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main App (hidden until auth) -->
+            <div id="mainApp" class="hidden space-y-8">
+                <!-- Schedule Widget -->
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">📅 Расписание</h2>
+                        <button 
+                            onclick="loadSchedule()"
+                            class="btn-primary text-sm py-2 px-4"
+                        >
+                            🔄 Обновить
+                        </button>
+                    </div>
+                    
+                    <div id="scheduleContainer" class="space-y-3">
+                        <p class="text-gray-500">Загрузка расписания...</p>
+                    </div>
+                </div>
+
+                <!-- Chat Widget -->
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">💬 AI-Наставник</h2>
+                    
+                    <!-- Chat History -->
+                    <div 
+                        id="chatHistory" 
+                        class="bg-gray-50 rounded-lg p-6 mb-6 h-96 overflow-y-auto border-2 border-gray-200"
+                    >
+                        <p class="text-gray-500 text-center py-20">
+                            Привет! 👋 Я твой ИИ-наставник. Задавай вопросы по школьным предметам,
+                            и я помогу тебе разобраться в материале!
+                        </p>
+                    </div>
+
+                    <!-- Subject Selector -->
+                    <div class="mb-4 flex space-x-2">
+                        <label for="subjectSelect" class="font-semibold text-gray-700">Предмет:</label>
+                        <select id="subjectSelect" class="border-2 border-gray-300 rounded-lg px-3 py-2">
+                            <option value="">Не выбран</option>
+                            <option value="Физика">Физика</option>
+                            <option value="Химия">Химия</option>
+                            <option value="Математика">Математика</option>
+                            <option value="Русский язык">Русский язык</option>
+                            <option value="История">История</option>
+                            <option value="Биология">Биология</option>
+                            <option value="Английский язык">Английский язык</option>
+                        </select>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div class="flex space-x-3">
+                        <textarea 
+                            id="questionInput" 
+                            class="flex-grow border-2 border-gray-300 rounded-lg p-3 resize-none"
+                            rows="3"
+                            placeholder="Напишите свой вопрос... Например: 'Объясни тему на уроке физики'"
+                            onkeypress="handleKeyPress(event)"
+                        ></textarea>
+                        <button 
+                            onclick="askTutor()"
+                            class="btn-primary self-end px-6 font-semibold"
+                        >
+                            📤 Отправить
+                        </button>
+                    </div>
+
+                    <!-- Control Buttons -->
+                    <div class="mt-4 flex justify-between">
+                        <button 
+                            onclick="clearChat()"
+                            class="text-gray-600 hover:text-gray-800 underline"
+                        >
+                            🗑️ Очистить чат
+                        </button>
+                        <button 
+                            onclick="logout()"
+                            class="text-red-600 hover:text-red-800 underline"
+                        >
+                            🚪 Выход
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ Eel Communication ============
+        
+        function showTokenHelp() {
+            document.getElementById('tokenHelp').classList.remove('hidden');
+        }
+        
+        function hideTokenHelp() {
+            document.getElementById('tokenHelp').classList.add('hidden');
+        }
+        
+        async function authorizePortal() {
+            const cookies = document.getElementById('tokenInput').value.trim();
+            
+            if (!cookies) {
+                alert('❌ Пожалуйста, вставьте cookies!');
+                return;
+            }
+            
+            try {
+                const result = await eel.set_school_portal_cookies(cookies)();
+                
+                if (result.success) {
+                    alert(result.message);
+                    showMainApp(result.profile);
+                    loadSchedule();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                alert('❌ Ошибка авторизации: ' + error);
+            }
+        }
+
+        async function loadSchedule() {
+            try {
+                const result = await eel.get_today_schedule()();
+                
+                const container = document.getElementById('scheduleContainer');
+                container.innerHTML = '';
+                
+                if (result.success && result.schedule.length > 0) {
+                    result.schedule.forEach(lesson => {
+                        const card = document.createElement('div');
+                        card.className = 'schedule-card';
+                        card.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-bold text-lg text-gray-800">
+                                        ${lesson.number}. ${lesson.subject}
+                                    </p>
+                                    <p class="text-sm text-gray-600">
+                                        ⏰ ${lesson.start_time} - ${lesson.end_time}
+                                    </p>
+                                    ${lesson.room ? `<p class="text-sm text-gray-600">📍 Кабинет: ${lesson.room}</p>` : ''}
+                                </div>
+                                <button 
+                                    onclick="askAboutLesson('${lesson.subject}')"
+                                    class="btn-primary text-sm py-2 px-4"
+                                >
+                                    💡 Помощь
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                } else {
+                    container.innerHTML = '<p class="text-gray-500">📭 Нет уроков на сегодня</p>';
+                }
+            } catch (error) {
+                console.error('Schedule error:', error);
+            }
+        }
+
+        async function askTutor() {
+            const question = document.getElementById('questionInput').value.trim();
+            const subject = document.getElementById('subjectSelect').value;
+            
+            if (!question) {
+                alert('❌ Напишите вопрос!');
+                return;
+            }
+            
+            // Добавляем вопрос в чат
+            addMessageToChat('user', question);
+            document.getElementById('questionInput').value = '';
+            
+            // Показываем loader
+            const chatHistory = document.getElementById('chatHistory');
+            const loader = document.createElement('div');
+            loader.className = 'flex items-center space-x-2 my-4';
+            loader.innerHTML = `
+                <div class="loading-spinner"></div>
+                <span class="text-gray-600">Думаю...</span>
+            `;
+            chatHistory.appendChild(loader);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            
+            try {
+                const result = await eel.ask_tutor(question, subject)();
+                
+                loader.remove();
+                
+                if (result.success) {
+                    addMessageToChat('assistant', result.response);
+                } else {
+                    addMessageToChat('error', result.message);
+                }
+            } catch (error) {
+                loader.remove();
+                console.error('Tutor error:', error);
+                addMessageToChat('error', '❌ Ошибка: ' + error);
+            }
+        }
+
+        function askAboutLesson(subject) {
+            document.getElementById('subjectSelect').value = subject;
+            document.getElementById('questionInput').focus();
+        }
+
+        async function clearChat() {
+            if (confirm('Вы уверены? История чата будет удалена.')) {
+                await eel.clear_conversation()();
+                document.getElementById('chatHistory').innerHTML = `
+                    <p class="text-gray-500 text-center py-20">
+                        Чат очищен! Начнем с нового вопроса?
+                    </p>
+                `;
+            }
+        }
+
+        function logout() {
+            if (confirm('Вы уверены? Вам нужно будет повторно ввести токен.')) {
+                document.getElementById('authWidget').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('tokenInput').value = '';
+                document.getElementById('chatHistory').innerHTML = '';
+            }
+        }
+
+        function addMessageToChat(type, text) {
+            const chatHistory = document.getElementById('chatHistory');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            
+            if (type === 'user') {
+                messageDiv.className += ' user-question';
+                messageDiv.innerHTML = `<strong>📝 Вы:</strong> ${escapeHtml(text)}`;
+            } else if (type === 'assistant') {
+                messageDiv.className += ' tutor-response';
+                messageDiv.innerHTML = `<strong>🤖 Наставник:</strong><br>${markdownToHtml(text)}`;
+            } else if (type === 'error') {
+                messageDiv.className += ' bg-red-100 border-l-4 border-red-500 text-red-900 p-3 rounded-lg';
+                messageDiv.innerHTML = text;
+            }
+            
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function showMainApp(profile) {
+            document.getElementById('authWidget').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            if (profile) {
+                document.getElementById('userName').textContent = profile.name || 'Ученик';
+                document.getElementById('userClass').textContent = profile.class || 'Класс неизвестен';
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.ctrlKey && event.key === 'Enter') {
+                askTutor();
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function markdownToHtml(text) {
+            // Простого преобразование markdown
+            let html = escapeHtml(text);
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            html = html.replace(/\n/g, '<br>');
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="underline">$1</a>');
+            return html;
+        }
+
+        // ============ Initialization ============
+        
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 AI-Tutor запущен');
+            
+            // Проверяем окружение
+            try {
+                const config = await eel.load_token_if_exists()();
+                if (config.has_token) {
+                    showMainApp(config.profile);
+                    loadSchedule();
+                }
+            } catch (error) {
+                console.log('Token check:', error);
+            }
+        });
+    </script>
+</body>
+</html>

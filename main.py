@@ -64,8 +64,7 @@ def set_school_portal_cookies(cookies: str) -> dict:
     JavaScript передает cookies, которые пользователь скопировал из браузера.
     """
     try:
-        print(f"[Backend] 🔐 Проверяем cookies...")
-        
+        print(f"[Backend] Проверяем cookies...")
         portal_client.set_cookies(cookies)
         if portal_client.verify_cookies():
             # Сохраняем cookies
@@ -76,21 +75,21 @@ def set_school_portal_cookies(cookies: str) -> dict:
             app_config['token_verified'] = True
             app_config['user_profile'] = profile
             
-            print(f"[Backend] ✅ Cookies успешно проверены!")
+            print(f"[Backend] Cookies успешно проверены")
             return {
                 'success': True,
-                'message': '✅ Авторизация успешна!',
+                'message': 'Авторизация успешна',
                 'profile': profile
             }
         else:
             return {
                 'success': False,
-                'message': '❌ Cookies недействительные. Пожалуйста, проверьте их.',
+                'message': 'Cookies недействительные. Пожалуйста, проверьте их.',
             }
     except Exception as e:
         return {
             'success': False,
-            'message': f'❌ Ошибка: {str(e)}',
+            'message': f'Ошибка: {str(e)}',
         }
 
 
@@ -130,11 +129,11 @@ def ask_tutor(question: str, subject: str = None) -> dict:
         if not ai_engine.is_available():
             return {
                 'success': False,
-                'message': '❌ ИИ-движок недоступен. Пожалуйста, проверьте Ollama.',
+                'message': 'ИИ-движок недоступен. Пожалуйста, проверьте Ollama.',
             }
         
-        print(f"[Backend] 📚 Вопрос: {question}")
-        print(f"[Backend] 🎓 Предмет: {subject if subject else 'Не указан'}")
+        print(f"[Backend] Вопрос: {question}")
+        print(f"[Backend] Предмет: {subject if subject else 'Не указан'}")
         
         # Получаем ответ потоком
         response_text = ""
@@ -142,19 +141,19 @@ def ask_tutor(question: str, subject: str = None) -> dict:
             response_text += chunk
             print(f"[Backend] Получен чанк: {len(chunk)} символов")
         
-        print(f"[Backend] ✅ Ответ готов: {len(response_text)} символов")
+        print(f"[Backend] Ответ готов: {len(response_text)} символов")
         
         return {
             'success': True,
             'response': response_text,
         }
     except Exception as e:
-        print(f"[Backend] ❌ Ошибка в ask_tutor: {str(e)}")
+        print(f"[Backend] Ошибка в ask_tutor: {str(e)}")
         import traceback
         traceback.print_exc()
         return {
             'success': False,
-            'message': f'❌ Ошибка: {str(e)}',
+            'message': f'Ошибка: {str(e)}',
         }
 
 
@@ -202,43 +201,41 @@ def get_app_config() -> dict:
 def main():
     """Главная функция приложения."""
     print("=" * 60)
-    print("🚀 AI-Tutor: Персональный школьный навигатор")
+    print("AI-Tutor: Персональный школьный навигатор")
     print("=" * 60)
     
-    # Проверяем, есть ли сохраненный токен
-    load_token_if_exists()
+    # ПРИМЕЧАНИЕ: Мы убрали блокирующий вызов load_token_if_exists() отсюда.
+    # Теперь проверка токена происходит асинхронно через JavaScript (window.onload)
+    # Это значительно ускоряет запуск приложения.
     
     # Проверяем окружение в отдельном потоке (чтобы UI не зависал)
     def check_env_thread():
         if not is_ollama_running():
-            print("\n⚠️ Ollama не найдена. Попытка автоматической установки...")
+            print("\nOllama не найдена. Попытка автоматической установки...")
             setup_environment()
     
     env_thread = threading.Thread(target=check_env_thread, daemon=True)
     env_thread.start()
     
     # Запускаем Eel приложение
-    print("\n🌐 Запуск веб-интерфейса...")
+    print("\nЗапуск десктопного интерфейса...")
     
-    # Определяем параметры для разных платформ
-    if sys.platform == "win32":
-        # Windows: используем Edge или Chrome
+    try:
+        # Пытаемся запустить в режиме Chrome (как приложение)
+        # Если Chrome не установлен, Eel автоматически попробует Edge или системный браузер
         eel.start(
             'index.html',
-            mode='edge',  # Или 'chrome'
+            mode='chrome', # По умолчанию пытаемся запустить как Chrome App
             host='localhost',
             port=8000,
+            size=(1200, 800), # Размер окна
+            position=(100, 100),
             block=True
         )
-    else:
-        # Linux/Mac
-        eel.start(
-            'index.html',
-            mode='chrome',
-            host='localhost',
-            port=8000,
-            block=True
-        )
+    except Exception as e:
+        print(f"[Fatal] Ошибка при запуске интерфейса: {e}")
+        # Запасной вариант - запуск в системном браузере
+        eel.start('index.html', mode='default')
 
 
 if __name__ == '__main__':

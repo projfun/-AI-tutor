@@ -7,14 +7,17 @@ import eel
 import os
 import sys
 import json
+import asyncio
 from pathlib import Path
 from datetime import datetime, date
 import threading
+from typing import Optional
 
 # Импортируем наши модули
 from env_setup import setup_environment, is_ollama_running, start_ollama
 from portal import SchoolPortalClient, load_cookies_from_env, save_cookies_to_env
 from engine import AITutorEngine
+from browser_connector import BrowserConnector
 
 # Инициализируем Eel
 eel.init('web')
@@ -58,39 +61,64 @@ def setup_and_start():
 
 
 @eel.expose
-def set_school_portal_cookies(cookies: str) -> dict:
+def open_debug_browser():
+    """Запускает браузер Chrome с флагами отладки."""
+    connector = BrowserConnector()
+    # Запускаем асинхронную функцию в новом потоке или через asyncio
+    def run_launch():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(connector.launch_browser())
+        
+    threading.Thread(target=run_launch, daemon=True).start()
+    return {"status": "launching"}
+
+@eel.expose
+def set_school_portal_auth(auth_data: dict) -> dict:
     """
-    Устанавливает cookies для авторизации в школьном портале.
-    JavaScript передает cookies, которые пользователь скопировал из браузера.
+    Устанавливает данные авторизации.
     """
+    global portal_client
     try:
-        print(f"[Backend] Проверяем cookies...")
-        portal_client.set_cookies(cookies)
-        if portal_client.verify_cookies():
-            # Сохраняем cookies
-            save_cookies_to_env(cookies)
-            
-            # Получаем профиль пользователя
-            profile = portal_client.get_profile()
-            app_config['token_verified'] = True
-            app_config['user_profile'] = profile
-            
-            print(f"[Backend] Cookies успешно проверены")
-            return {
-                'success': True,
-                'message': 'Авторизация успешна',
-                'profile': profile
-            }
-        else:
-            return {
-                'success': False,
-                'message': 'Cookies недействительные. Пожалуйста, проверьте их.',
-            }
-    except Exception as e:
+        portal_client = SchoolPortalClient(auth_data)
+        save_auth_to_env(auth_data)
+        app_config['token_verified'] = True
+        
+        # Возвращаем успех сразу, профиль подгрузится позже асинхронно
+        # чтобы не вешать кнопку входа
         return {
-            'success': False,
-            'message': f'Ошибка: {str(e)}',
+            'success': True,
+            'message': 'Данные приняты'
         }
+    except Exception as e:
+        return {'success': False, 'message': str(e)}
+
+@eel.expose
+def get_user_profile():
+    """Асинхронно получает профиль."""
+    if not portal_client:
+        return None
+    return portal_client.get_profile()
+
+def save_auth_to_env(auth_data: dict):
+    """Сохраняет данные авторизации в .env."""
+    with open('.env', 'w', encoding='utf-8') as f:
+        for k, v in auth_data.items():
+            f.write(f"PORTAL_{k.upper()}={v}\n")
+
+def load_auth_from_env() -> Optional[dict]:
+    """Загружает данные авторизации из .env."""
+    if not os.path.exists('.env'):
+        return None
+    
+    auth_data = {}
+    with open('.env', 'r', encoding='utf-8') as f:
+        for line in f:
+            if '=' in line:
+                k, v = line.strip().split('=', 1)
+                if k.startswith('PORTAL_'):
+                    auth_data[k.replace('PORTAL_', '').lower()] = v
+    return auth_data if auth_data else None
 
 
 @eel.expose
@@ -107,8 +135,8 @@ def get_today_schedule() -> dict:
         schedule = portal_client.get_schedule(date.today())
         
         return {
-            'success': True,
-            'schedule': schedule['lessons'] if schedule else [],
+            'success': bool(schedule),
+            'schedule': schedule.get('lessons', []) if schedule else [],
             'date': str(date.today()),
         }
     except Exception as e:
@@ -117,6 +145,18 @@ def get_today_schedule() -> dict:
             'message': f'Ошибка при загрузке расписания: {str(e)}',
             'schedule': []
         }
+
+
+@eel.expose
+def parse_manual_schedule(raw_data):
+    """Парсит переданный вручную JSON расписания."""
+    try:
+        schedule = portal_client._parse_schedule(raw_data)
+        if schedule and schedule.get('lessons'):
+            return {"success": True, "schedule": schedule['lessons']}
+        return {"success": False, "message": "В JSON не найдено уроков"}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
 
 
 @eel.expose
@@ -172,21 +212,26 @@ def clear_conversation():
 
 @eel.expose
 def load_token_if_exists() -> dict:
-    """Проверяет, есть ли сохраненные cookies в .env."""
-    cookies = load_cookies_from_env()
-    if cookies:
-        # Пытаемся проверить сохраненные cookies
-        portal_client.set_cookies(cookies)
-        if portal_client.verify_cookies():
-            app_config['token_verified'] = True
-            profile = portal_client.get_profile()
-            app_config['user_profile'] = profile
-            return {
-                'has_token': True,
-                'profile': profile,
-            }
-    
+    """
+    Проверяет наличие сохраненных данных и возвращает их для заполнения полей формы.
+    НЕ выполняет сетевых запросов.
+    """
+    auth_data = load_auth_from_env()
+    if auth_data:
+        return {
+            'has_token': True,
+            'auth_data': auth_data
+        }
     return {'has_token': False}
+
+@eel.expose
+def logout():
+    """Удаляет сохраненные данные и сбрасывает сессию."""
+    if os.path.exists('.env'):
+        os.remove('.env')
+    global portal_client
+    portal_client = SchoolPortalClient()
+    return {'success': True}
 
 
 @eel.expose
@@ -203,19 +248,6 @@ def main():
     print("=" * 60)
     print("AI-Tutor: Персональный школьный навигатор")
     print("=" * 60)
-    
-    # ПРИМЕЧАНИЕ: Мы убрали блокирующий вызов load_token_if_exists() отсюда.
-    # Теперь проверка токена происходит асинхронно через JavaScript (window.onload)
-    # Это значительно ускоряет запуск приложения.
-    
-    # Проверяем окружение в отдельном потоке (чтобы UI не зависал)
-    def check_env_thread():
-        if not is_ollama_running():
-            print("\nOllama не найдена. Попытка автоматической установки...")
-            setup_environment()
-    
-    env_thread = threading.Thread(target=check_env_thread, daemon=True)
-    env_thread.start()
     
     # Запускаем Eel приложение
     print("\nЗапуск десктопного интерфейса...")
